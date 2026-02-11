@@ -3,73 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A Special Note</title>
+    <title>VALENTINE_QUEST_V2.0</title>
     <style>
-        body { margin: 0; background: #fdfaf6; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Georgia', serif; overflow: hidden; }
-        .polaroid { background: white; padding: 15px 15px 60px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: rotate(-3deg); transition: all 0.5s; position: relative; z-index: 10; width: 280px; }
-        .photo-space { width: 100%; aspect-ratio: 1; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 50px; overflow: hidden; filter: grayscale(0%); transition: filter 0.5s; }
-        .caption { margin-top: 20px; text-align: center; color: #444; font-style: italic; font-size: 1.2rem; }
-        
-        #controls { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        button { pointer-events: auto; position: absolute; border: none; cursor: pointer; font-family: inherit; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        
-        #yesBtn { bottom: 15%; left: 50%; transform: translateX(-50%); background: #ff4d6d; color: white; padding: 12px 40px; border-radius: 5px; font-size: 1.1rem; z-index: 20; }
-        #noBtn { bottom: 8%; left: 50%; transform: translateX(-50%); background: transparent; color: #aaa; text-decoration: underline; font-size: 0.9rem; z-index: 5; }
-        
-        .petal { position: absolute; background: #ffb3c1; border-radius: 150% 0 150% 0; animation: fall 3s linear infinite; pointer-events: none; }
-        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #4CAF50;
+            --bg: #0a0a0a;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: var(--bg); font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; display: flex; justify-content: center; align-items: center;
+            color: white;
+        }
+
+        /* Scanline Overlay for Retro Look */
+        body::before {
+            content: " ";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%; z-index: 100; pointer-events: none;
+        }
+
+        #game-container {
+            width: 85%; max-width: 380px; background: #1a1a1a;
+            border: 4px solid #fff; padding: 20px; text-align: center;
+            box-shadow: 10px 10px 0px var(--primary); position: relative; z-index: 10;
+        }
+
+        /* HP Bar Hook */
+        .hp-container { width: 100%; background: #333; height: 10px; border: 2px solid #fff; margin: 10px 0; }
+        #hp-fill { width: 100%; height: 100%; background: var(--secondary); transition: width 0.3s; }
+
+        h1 { font-size: 1.2rem; text-transform: uppercase; margin: 15px 0; color: #fff; }
+
+        #play-area { 
+            height: 350px; width: 100%; position: relative; 
+            border: 2px dashed #444; background: #000; overflow: hidden;
+            margin-top: 10px;
+        }
+
+        button { 
+            font-family: 'Courier New', monospace; font-weight: bold; 
+            border: 3px solid #fff; position: absolute;
+            cursor: pointer; text-transform: uppercase;
+            touch-action: manipulation;
+        }
+
+        #yesBtn { 
+            left: 50%; top: 40%; transform: translate(-50%, -50%); 
+            background: var(--secondary); color: white; padding: 15px 30px; 
+            font-size: 1.2rem; z-index: 10; box-shadow: 4px 4px 0px #1b5e20;
+        }
+
+        #noBtn { 
+            left: 50%; top: 75%; transform: translate(-50%, -50%); 
+            background: var(--primary); color: white; padding: 10px 20px; 
+            font-size: 0.9rem; z-index: 100; box-shadow: 4px 4px 0px #800;
+        }
+
+        /* Animations */
+        @keyframes shake { 
+            0% { transform: translate(0,0); } 25% { transform: translate(5px, -5px); }
+            50% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, 5px); } 100% { transform: translate(0,0); }
+        }
+        .shake { animation: shake 0.2s ease-in-out; }
+
+        #win-screen { display: none; text-align: center; }
+        .pixel-heart { font-size: 50px; animation: pulse 0.8s infinite; color: var(--primary); }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
-    <div class="polaroid" id="card">
-        <div class="photo-space" id="photo">📸</div>
-        <div class="caption" id="cap">Will you be my Valentine?</div>
-    </div>
-    <div id="controls">
-        <button id="yesBtn" onclick="bloom()">YES</button>
-        <button id="noBtn" onclick="runAway()">No</button>
+
+    <div id="game-container">
+        <div id="main-ui">
+            <div style="font-size: 10px; text-align: left; opacity: 0.7;">BOSS: VALENTINE_BOT</div>
+            <div class="hp-container"><div id="hp-fill"></div></div>
+            
+            <div class="pixel-heart" style="margin-top: 20px;">❤️</div>
+            <h1 id="question">Will you be my Valentine?</h1>
+            
+            <div id="play-area">
+                <button id="yesBtn" onclick="celebrate()">YES</button>
+                <button id="noBtn" onclick="handleNo()">NO</button>
+            </div>
+        </div>
+
+        <div id="win-screen">
+            <h1 style="color: var(--secondary);">QUEST COMPLETE!</h1>
+            <div style="font-size: 80px; margin: 20px 0;">🎁</div>
+            <p style="color: var(--primary); font-weight: bold;">NEW ALLY ADDED: [YOU]</p>
+            <p style="font-size: 10px; opacity: 0.6;">FOREVER MODE ACTIVATED</p>
+        </div>
     </div>
 
     <script>
-        let clicks = 0;
-        function runAway() {
-            const no = document.getElementById('noBtn');
-            const yes = document.getElementById('yesBtn');
-            const photo = document.getElementById('photo');
-            clicks++;
-            
-            // PHYSICS: Calculate position away from Yes button
-            const yesRect = yes.getBoundingClientRect();
-            let x, y, dist;
-            do {
-                x = Math.random() * (window.innerWidth - 100);
-                y = Math.random() * (window.innerHeight - 50);
-                dist = Math.hypot(x - yesRect.left, y - yesRect.top);
-            } while (dist < 150); // Keep at least 150px away
+        let hp = 100;
+        let scale = 1;
+        const noPhrases = ["MISS!", "TRY AGAIN", "BLOCK!", "REFUSED", "ERROR", "RETRYING..."];
 
-            no.style.left = x + 'px';
-            no.style.top = y + 'px';
-            no.style.transform = 'none';
+        function handleNo() {
+            const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
+            const hpFill = document.getElementById('hp-fill');
+            const container = document.getElementById('game-container');
+            const area = document.getElementById('play-area');
+
+            // 1. Reduce HP
+            hp -= 10;
+            if(hp < 0) hp = 5; // Keep a sliver of health
+            hpFill.style.width = hp + "%";
+
+            // 2. Shake Screen
+            container.classList.add('shake');
+            setTimeout(() => container.classList.remove('shake'), 200);
+
+            // 3. Move NO button to logical corners (Mobile friendly)
+            const padding = 20;
+            const x = Math.random() < 0.5 ? padding : area.clientWidth - noBtn.clientWidth - padding;
+            const y = Math.random() < 0.5 ? padding : area.clientHeight - noBtn.clientHeight - padding;
             
-            // FADE PHOTO
-            photo.style.filter = `grayscale(${clicks * 20}%)`;
-            photo.innerText = clicks > 3 ? "😢" : "📸";
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+            noBtn.style.transform = 'none';
+            noBtn.innerText = noPhrases[Math.floor(Math.random() * noPhrases.length)];
+
+            // 4. YES button takes over the screen
+            scale += 0.3;
+            yesBtn.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            
+            // 5. Change background color intensity
+            document.body.style.backgroundColor = `rgb(${10 + (100 - hp)}, 10, 10)`;
         }
 
-        function bloom() {
-            document.getElementById('photo').style.filter = "grayscale(0%)";
-            document.getElementById('photo').innerText = "💖";
-            document.getElementById('cap').innerText = "Best Day Ever!";
-            document.getElementById('noBtn').style.display = "none";
-            for(let i=0; i<30; i++) {
-                setTimeout(() => {
-                    const p = document.createElement('div');
-                    p.className = 'petal';
-                    p.style.left = Math.random() * 100 + 'vw';
-                    p.style.width = Math.random() * 15 + 10 + 'px';
-                    p.style.height = p.style.width;
-                    document.body.appendChild(p);
-                }, i * 100);
-            }
+        function celebrate() {
+            document.getElementById('main-ui').style.display = 'none';
+            document.getElementById('win-screen').style.display = 'block';
+            document.body.style.background = '#ff4d6d';
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
     </script>
+</body>
+</html>
