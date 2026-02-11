@@ -3,147 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VALENTINE_QUEST_V2.0</title>
+    <title>The Question</title>
     <style>
-        :root {
-            --primary: #ff4d6d;
-            --secondary: #4CAF50;
-            --bg: #0a0a0a;
+        body { margin: 0; background: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding-bottom: 50px; user-select: none; }
+        
+        /* Star Background */
+        #space { position: fixed; top:0; left:0; width:100%; height:100%; z-index:0; background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 2s infinite; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* Content */
+        #content { z-index: 10; text-align: center; margin-top: 15vh; width: 100%; }
+        h1 { font-weight: 800; font-size: 2.5rem; margin: 0; background: -webkit-linear-gradient(#fff, #999); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p { color: #888; margin-top: 10px; font-weight: 500; }
+
+        /* Button Container - The safe zone */
+        #controls {
+            position: relative; width: 300px; height: 300px; z-index: 10;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: var(--bg); font-family: 'Courier New', Courier, monospace;
-            overflow: hidden; display: flex; justify-content: center; align-items: center;
-            color: white;
+        button {
+            border: none; border-radius: 100px; font-weight: 700; font-size: 1.1rem;
+            cursor: pointer; position: absolute; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Scanline Overlay for Retro Look */
-        body::before {
-            content: " ";
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 3px 100%; z-index: 100; pointer-events: none;
+        #yesBtn {
+            width: 120px; height: 120px; border-radius: 50%; /* Circle */
+            background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
+            color: white; z-index: 20; box-shadow: 0 10px 30px rgba(120, 75, 160, 0.5);
+            font-size: 1.5rem;
         }
 
-        #game-container {
-            width: 85%; max-width: 380px; background: #1a1a1a;
-            border: 4px solid #fff; padding: 20px; text-align: center;
-            box-shadow: 10px 10px 0px var(--primary); position: relative; z-index: 10;
+        #noBtn {
+            padding: 12px 25px; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2); color: #aaa;
+            backdrop-filter: blur(10px); z-index: 100;
+            top: 80%; /* Start below the main button */
         }
 
-        /* HP Bar Hook */
-        .hp-container { width: 100%; background: #333; height: 10px; border: 2px solid #fff; margin: 10px 0; }
-        #hp-fill { width: 100%; height: 100%; background: var(--secondary); transition: width 0.3s; }
-
-        h1 { font-size: 1.2rem; text-transform: uppercase; margin: 15px 0; color: #fff; }
-
-        #play-area { 
-            height: 350px; width: 100%; position: relative; 
-            border: 2px dashed #444; background: #000; overflow: hidden;
-            margin-top: 10px;
+        #win-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: #000;
+            z-index: 999; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 1s;
         }
-
-        button { 
-            font-family: 'Courier New', monospace; font-weight: bold; 
-            border: 3px solid #fff; position: absolute;
-            cursor: pointer; text-transform: uppercase;
-            touch-action: manipulation;
-        }
-
-        #yesBtn { 
-            left: 50%; top: 40%; transform: translate(-50%, -50%); 
-            background: var(--secondary); color: white; padding: 15px 30px; 
-            font-size: 1.2rem; z-index: 10; box-shadow: 4px 4px 0px #1b5e20;
-        }
-
-        #noBtn { 
-            left: 50%; top: 75%; transform: translate(-50%, -50%); 
-            background: var(--primary); color: white; padding: 10px 20px; 
-            font-size: 0.9rem; z-index: 100; box-shadow: 4px 4px 0px #800;
-        }
-
-        /* Animations */
-        @keyframes shake { 
-            0% { transform: translate(0,0); } 25% { transform: translate(5px, -5px); }
-            50% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, 5px); } 100% { transform: translate(0,0); }
-        }
-        .shake { animation: shake 0.2s ease-in-out; }
-
-        #win-screen { display: none; text-align: center; }
-        .pixel-heart { font-size: 50px; animation: pulse 0.8s infinite; color: var(--primary); }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
+    <div id="space"></div>
+    
+    <div id="content">
+        <h1>Be mine?</h1>
+        <p id="sub">Don't break my orbit.</p>
+    </div>
 
-    <div id="game-container">
-        <div id="main-ui">
-            <div style="font-size: 10px; text-align: left; opacity: 0.7;">BOSS: VALENTINE_BOT</div>
-            <div class="hp-container"><div id="hp-fill"></div></div>
-            
-            <div class="pixel-heart" style="margin-top: 20px;">❤️</div>
-            <h1 id="question">Will you be my Valentine?</h1>
-            
-            <div id="play-area">
-                <button id="yesBtn" onclick="celebrate()">YES</button>
-                <button id="noBtn" onclick="handleNo()">NO</button>
-            </div>
-        </div>
+    <div id="controls">
+        <button id="yesBtn" onclick="accept()">YES</button>
+        <button id="noBtn" onclick="orbit()">No</button>
+    </div>
 
-        <div id="win-screen">
-            <h1 style="color: var(--secondary);">QUEST COMPLETE!</h1>
-            <div style="font-size: 80px; margin: 20px 0;">🎁</div>
-            <p style="color: var(--primary); font-weight: bold;">NEW ALLY ADDED: [YOU]</p>
-            <p style="font-size: 10px; opacity: 0.6;">FOREVER MODE ACTIVATED</p>
-        </div>
+    <div id="win-overlay">
+        <h1 style="font-size: 4rem;">❤️</h1>
     </div>
 
     <script>
-        let hp = 100;
-        let scale = 1;
-        const noPhrases = ["MISS!", "TRY AGAIN", "BLOCK!", "REFUSED", "ERROR", "RETRYING..."];
-
-        function handleNo() {
-            const noBtn = document.getElementById('noBtn');
-            const yesBtn = document.getElementById('yesBtn');
-            const hpFill = document.getElementById('hp-fill');
-            const container = document.getElementById('game-container');
-            const area = document.getElementById('play-area');
-
-            // 1. Reduce HP
-            hp -= 10;
-            if(hp < 0) hp = 5; // Keep a sliver of health
-            hpFill.style.width = hp + "%";
-
-            // 2. Shake Screen
-            container.classList.add('shake');
-            setTimeout(() => container.classList.remove('shake'), 200);
-
-            // 3. Move NO button to logical corners (Mobile friendly)
-            const padding = 20;
-            const x = Math.random() < 0.5 ? padding : area.clientWidth - noBtn.clientWidth - padding;
-            const y = Math.random() < 0.5 ? padding : area.clientHeight - noBtn.clientHeight - padding;
-            
-            noBtn.style.left = x + 'px';
-            noBtn.style.top = y + 'px';
-            noBtn.style.transform = 'none';
-            noBtn.innerText = noPhrases[Math.floor(Math.random() * noPhrases.length)];
-
-            // 4. YES button takes over the screen
-            scale += 0.3;
-            yesBtn.style.transform = `translate(-50%, -50%) scale(${scale})`;
-            
-            // 5. Change background color intensity
-            document.body.style.backgroundColor = `rgb(${10 + (100 - hp)}, 10, 10)`;
+        // Generate Stars
+        for(let i=0; i<50; i++){
+            let s = document.createElement('div');
+            s.className = 'star';
+            s.style.width = Math.random()*3 + 'px';
+            s.style.height = s.style.width;
+            s.style.left = Math.random()*100 + '%';
+            s.style.top = Math.random()*100 + '%';
+            s.style.animationDelay = Math.random()*2 + 's';
+            document.getElementById('space').appendChild(s);
         }
 
-        function celebrate() {
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('win-screen').style.display = 'block';
-            document.body.style.background = '#ff4d6d';
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        let yesSize = 120; // Initial size in px
+        const no = document.getElementById('noBtn');
+        const yes = document.getElementById('yesBtn');
+        const sub = document.getElementById('sub');
+
+        function orbit() {
+            // 1. CIRCULAR ORBIT LOGIC (The most robust anti-overlap)
+            // Instead of random X/Y, we pick a random ANGLE around the circle.
+            // This guarantees the No button stays exactly X pixels away from center.
+            
+            const containerRadius = 130; // Distance from center
+            const randomAngle = Math.random() * Math.PI * 2; // 0 to 360 degrees
+            
+            // Convert Angle to X/Y
+            const x = Math.cos(randomAngle) * containerRadius;
+            const y = Math.sin(randomAngle) * containerRadius;
+
+            // Apply position (Relative to the center of #controls)
+            // We subtract half button width to center it on that point
+            no.style.left = `calc(50% + ${x}px - ${no.offsetWidth/2}px)`;
+            no.style.top = `calc(50% + ${y}px - ${no.offsetHeight/2}px)`;
+
+            // 2. Grow Yes Button
+            yesSize += 20;
+            yes.style.width = yesSize + 'px';
+            yes.style.height = yesSize + 'px';
+            
+            // 3. Update Text
+            sub.innerText = ["Please?", "I'm a catch!", "Don't do this...", "Look at the stars!"][Math.floor(Math.random()*4)];
+            sub.style.color = '#ff4d6d';
+        }
+
+        function accept() {
+            const over = document.getElementById('win-overlay');
+            over.style.opacity = '1';
+            over.style.pointerEvents = 'auto';
+            document.getElementById('content').style.opacity = '0';
         }
     </script>
 </body>
