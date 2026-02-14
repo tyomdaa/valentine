@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System OS v2.5 - Secure Access</title>
+    <title>System OS v2.7 - Secure Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&family=Playfair+Display:ital,wght@1,500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --ios-bg: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
-            --glass: rgba(255, 255, 255, 0.25);
-            --dark-glass: rgba(0, 0, 0, 0.75);
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -26,7 +24,7 @@
         .loading-bar-wrap { width: 200px; height: 2px; background: #222; margin-top: 30px; position: relative; }
         #boot-progress { width: 0%; height: 100%; background: #fff; transition: width 0.3s; }
 
-        /* --- 2. LOCK SCREEN (Updated Background) --- */
+        /* --- 2. LOCK SCREEN --- */
         #lock-screen {
             position: fixed; inset: 0; z-index: 9000; display: none;
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), 
@@ -35,17 +33,22 @@
         }
         .lock-content { padding-top: 15vh; text-align: center; }
         .clock { font-size: 80px; font-weight: 200; letter-spacing: -2px; }
-        .date { font-size: 19px; margin-top: -10px; opacity: 0.9; font-weight: 400; }
-        .unlock-hint { position: absolute; bottom: 50px; width: 100%; text-align: center; font-size: 14px; opacity: 0.7; animation: pulse 2s infinite; letter-spacing: 1px; }
+        .date { font-size: 19px; margin-top: -10px; opacity: 0.9; }
+        .unlock-hint { position: absolute; bottom: 50px; width: 100%; text-align: center; font-size: 14px; opacity: 0.7; animation: pulse 2s infinite; }
 
-        /* --- 3. PIN PAD --- */
+        /* --- 3. PIN PAD & HINT --- */
         #pin-ui {
             position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(25px);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9500;
         }
-        .pin-dots { display: flex; gap: 20px; margin-bottom: 40px; }
+        .pin-dots { display: flex; gap: 20px; margin-bottom: 30px; }
         .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #fff; transition: 0.2s; }
         .pin-dot.filled { background: #fff; box-shadow: 0 0 10px #fff; }
+        
+        #js-passcode-hint { 
+            color: #ff3b30; font-size: 14px; margin-bottom: 20px; opacity: 0; transition: opacity 0.3s; height: 20px;
+        }
+
         .numpad { display: grid; grid-template-columns: repeat(3, 80px); gap: 20px; }
         .key { 
             width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.1); 
@@ -82,6 +85,7 @@
         .win-close { color: #007aff; font-size: 17px; font-weight: 600; cursor: pointer; }
         .win-body { flex: 1; overflow-y: auto; padding: 25px; -webkit-overflow-scrolling: touch; }
 
+        /* APP STYLES */
         .photo-wall { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .photo-card { height: 160px; border-radius: 12px; overflow: hidden; position: relative; background: #e5e5ea; }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
@@ -101,9 +105,11 @@
         #gift-screen-unlocked { display: none; text-align: center; animation: fadeIn 1.5s; }
         .voucher-box { border: 3px dashed #ff3b30; padding: 30px; border-radius: 20px; background: white; margin: 30px 0; }
 
+        /* ANIMATIONS */
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     </style>
 </head>
 <body>
@@ -118,13 +124,14 @@
             <div class="clock" id="js-clock">00:00</div>
             <div class="date" id="js-date">February 14, 2026</div>
         </div>
-        <div class="unlock-hint" onclick="togglePin(true)">Swipe Up to Open</div>
+        <div class="unlock-hint" onclick="togglePin(true)">Tap Screen to Unlock</div>
 
         <div id="pin-ui">
             <h2 style="font-weight: 400; margin-bottom: 20px; color: #fff;">Enter Passcode</h2>
-            <div class="pin-dots">
+            <div class="pin-dots" id="js-dots-container">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
+            <div id="js-passcode-hint">Hint: It's your birthday (DDMM)</div>
             <div class="numpad">
                 <div class="key" onclick="pressPin(1)">1</div><div class="key" onclick="pressPin(2)">2</div><div class="key" onclick="pressPin(3)">3</div>
                 <div class="key" onclick="pressPin(4)">4</div><div class="key" onclick="pressPin(5)">5</div><div class="key" onclick="pressPin(6)">6</div>
@@ -164,28 +171,29 @@
     <script>
         const CONFIG = {
             passcode: "1402",
+            passcodeHint: "Hint: It's your birthday (DDMM)", // <--- Added Hint
             photos: [
                 { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593622%281%29.jpg", caption: "The beginning." },
                 { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593632%281%29.jpg", caption: "My favorite day." },
-                { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593673.jpg", caption: "random pic" }, // <--- Updated
-                { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593685.jpg", caption: "favourite pic" } // <--- Updated
+                { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593673.jpg", caption: "random pic" },
+                { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593685.jpg", caption: "favourite pic" }
             ],
-            music: { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/lenkker.mp3", title: "Our song" },
+            music: { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/lenker.mp3", title: "anything - adrianne lenker" },
             notes: [
                 { title: "On Your Resilience", text: "I've always admired how you handle the world. You have a strength that most people never see." },
                 { title: "The Best Sound", text: "Your laugh is still the best sound I've ever heard. Don't ever let the world quiet it down." },
                 { title: "Happy Birthday", text: "I'm still rooting for you to hit every goal you've set for yourself. I know you will." }
             ],
             finalMessage: "I built this to show you that even though chapters change, the respect I have for your story doesn't.",
-            voucher: "Valid for: One KFC party combo or a long walk.",
-            signature: "— Tyom"
+            voucher: "Valid for: One Coffee or a long walk.",
+            signature: "— Your Name"
         };
 
         let currentPin = "";
         let viewedApps = { photos: false, notes: false, music: false };
 
         function runBoot() {
-            const logs = ["Initializing System...", "Kernel v2.5.4 Loaded", "Media Partition Decrypted", "Access Granted"];
+            const logs = ["Initializing System...", "Kernel v2.7.1 Loaded", "Media Partition Decrypted", "Access Granted"];
             let i = 0;
             const logEl = document.getElementById('boot-log');
             const interval = setInterval(() => {
@@ -236,20 +244,36 @@
         function pressPin(n) {
             if(currentPin.length < 4) {
                 currentPin += n;
-                const dots = document.querySelectorAll('.pin-dot');
-                dots.forEach((d, i) => d.className = i < currentPin.length ? 'pin-dot filled' : 'pin-dot');
+                updateDotsUI();
+                
                 if(currentPin === CONFIG.passcode) {
-                    document.getElementById('lock-screen').style.transform = "translateY(-100%)";
-                    setTimeout(() => {
-                        document.getElementById('lock-screen').style.display = "none";
-                        document.getElementById('desktop').style.display = "flex";
-                    }, 600);
+                    unlockPhone();
                 } else if(currentPin.length === 4) {
-                    setTimeout(clearPin, 300);
+                    // WRONG PIN LOGIC
+                    document.getElementById('js-dots-container').style.animation = "shake 0.3s";
+                    document.getElementById('js-passcode-hint').style.opacity = "1"; // Show Hint
+                    setTimeout(() => {
+                        document.getElementById('js-dots-container').style.animation = "";
+                        clearPin();
+                    }, 500);
                 }
             }
         }
-        function clearPin() { currentPin = ""; const dots = document.querySelectorAll('.pin-dot'); dots.forEach(d => d.className = 'pin-dot'); }
+
+        function updateDotsUI() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((d, i) => d.className = i < currentPin.length ? 'pin-dot filled' : 'pin-dot');
+        }
+
+        function clearPin() { currentPin = ""; updateDotsUI(); }
+
+        function unlockPhone() {
+            document.getElementById('lock-screen').style.transform = "translateY(-100%)";
+            setTimeout(() => {
+                document.getElementById('lock-screen').style.display = "none";
+                document.getElementById('desktop').style.display = "flex";
+            }, 600);
+        }
 
         function openWin(id) {
             document.getElementById('win-' + id).classList.add('active');
