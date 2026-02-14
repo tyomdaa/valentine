@@ -6,6 +6,10 @@
     <title>System OS v24.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+            @keyframes rotateDisk {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+}
         :root {
             --bg-gradient: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); 
             --glass: rgba(255, 255, 255, 0.25);
@@ -272,19 +276,28 @@
             <span class="app-title">Now Playing</span>
             <span></span>
         </div>
-        <div class="app-content" style="text-align: center;">
-            <div class="player-art" style="background: linear-gradient(45deg, #84fab0 0%, #8fd3f4 100%); display:flex; align-items:center; justify-content:center; font-size:50px;">
-                🎵
-            </div>
-            <h3>Our Song</h3>
-            <p style="color: #888;">The Soundtrack</p>
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-            <div class="controls">
-                <span>⏮️</span>
-                <span onclick="togglePlay(this)">▶️</span>
-                <span>⏭️</span>
-            </div>
-        </div>
+<div class="app-content" style="text-align: center;">
+    <audio id="main-audio">
+        <source src=https://github.com/tyomdaa/valentinebirthday/blob/43671f37bf3c11e21d09ccc457ed1b17d52de292/Adrianne%20Lenker%20-%20anything.mp3 type="audio/mpeg">
+    </audio>
+
+    <div class="player-art" id="player-art-disk" style="background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%); display:flex; align-items:center; justify-content:center; font-size:50px; transition: transform 2s linear;">
+        💿
+    </div>
+    
+    <h3 id="song-title">Anything</h3>
+    <p style="color: #888;">Adrianne Lenker</p>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="audio-progress" style="width: 0%;"></div>
+    </div>
+    
+    <div class="controls">
+        <span style="opacity: 0.3;">⏮️</span>
+        <span id="play-icon" onclick="togglePlay()" style="cursor: pointer; font-size: 40px;">▶️</span>
+        <span style="opacity: 0.3;">⏭️</span>
+    </div>
+</div>
     </div>
 
     <div id="app-gift" class="app-window">
@@ -414,9 +427,28 @@
             app.classList.remove('active-app');
         }
 
-        function togglePlay(btn) {
-            if (btn.innerText === "▶️") btn.innerText = "⏸️";
-            else btn.innerText = "▶️";
+const audio = document.getElementById('main-audio');
+const playIcon = document.getElementById('play-icon');
+const disk = document.getElementById('player-art-disk');
+const progressFill = document.getElementById('audio-progress');
+
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+        playIcon.innerText = "⏸️";
+        disk.style.animation = "rotateDisk 3s linear infinite"; // Makes the CD spin
+    } else {
+        audio.pause();
+        playIcon.innerText = "▶️";
+        disk.style.animation = "none";
+    }
+}
+
+// Update progress bar as song plays
+audio.ontimeupdate = function() {
+    const percentage = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = percentage + "%";
+};
         }
 
         function checkGiftUnlock() {
