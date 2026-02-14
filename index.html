@@ -3,148 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VALENTINE_QUEST_V2.0</title>
+    <title>Happy Birthday ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,700&family=Inter:wght@300;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #ff4d6d;
-            --secondary: #4CAF50;
-            --bg: #0a0a0a;
+        :root { --gold: #d4af37; --bg: #05070a; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        #canvas-bg { position: fixed; top: 0; left: 0; z-index: 1; }
+        
+        .interface { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px; border-radius: 20px;
+            max-width: 80%; pointer-events: auto;
+            transition: all 1s ease;
         }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: var(--bg); font-family: 'Courier New', Courier, monospace;
-            overflow: hidden; display: flex; justify-content: center; align-items: center;
-            color: white;
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 10px; color: var(--gold); }
+        .memory-bubble {
+            position: absolute; padding: 15px 25px; background: rgba(255,255,255,0.1);
+            border-radius: 50px; border: 1px solid var(--gold);
+            font-size: 0.9rem; color: #fff; pointer-events: auto;
+            cursor: pointer; animation: float 4s infinite alternate ease-in-out;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
         }
 
-        /* Scanline Overlay for Retro Look */
-        body::before {
-            content: " ";
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 3px 100%; z-index: 100; pointer-events: none;
+        @keyframes float { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+
+        #final-letter {
+            display: none; opacity: 0; transition: opacity 2s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1a1a2e 0%, #05070a 100%);
+            z-index: 100; justify-content: center; align-items: center; pointer-events: auto;
         }
 
-        #game-container {
-            width: 85%; max-width: 380px; background: #1a1a1a;
-            border: 4px solid #fff; padding: 20px; text-align: center;
-            box-shadow: 10px 10px 0px var(--primary); position: relative; z-index: 10;
+        .letter-content { max-width: 500px; padding: 40px; line-height: 1.8; font-family: 'Playfair Display', serif; font-style: italic; }
+        
+        .btn {
+            background: transparent; border: 1px solid var(--gold); color: var(--gold);
+            padding: 10px 25px; border-radius: 50px; cursor: pointer; margin-top: 20px;
+            font-family: 'Inter'; text-transform: uppercase; letter-spacing: 2px;
         }
-
-        /* HP Bar Hook */
-        .hp-container { width: 100%; background: #333; height: 10px; border: 2px solid #fff; margin: 10px 0; }
-        #hp-fill { width: 100%; height: 100%; background: var(--secondary); transition: width 0.3s; }
-
-        h1 { font-size: 1.2rem; text-transform: uppercase; margin: 15px 0; color: #fff; }
-
-        #play-area { 
-            height: 350px; width: 100%; position: relative; 
-            border: 2px dashed #444; background: #000; overflow: hidden;
-            margin-top: 10px;
-        }
-
-        button { 
-            font-family: 'Courier New', monospace; font-weight: bold; 
-            border: 3px solid #fff; position: absolute;
-            cursor: pointer; text-transform: uppercase;
-            touch-action: manipulation;
-        }
-
-        #yesBtn { 
-            left: 50%; top: 40%; transform: translate(-50%, -50%); 
-            background: var(--secondary); color: white; padding: 15px 30px; 
-            font-size: 1.2rem; z-index: 10; box-shadow: 4px 4px 0px #1b5e20;
-        }
-
-        #noBtn { 
-            left: 50%; top: 75%; transform: translate(-50%, -50%); 
-            background: var(--primary); color: white; padding: 10px 20px; 
-            font-size: 0.9rem; z-index: 100; box-shadow: 4px 4px 0px #800;
-        }
-
-        /* Animations */
-        @keyframes shake { 
-            0% { transform: translate(0,0); } 25% { transform: translate(5px, -5px); }
-            50% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, 5px); } 100% { transform: translate(0,0); }
-        }
-        .shake { animation: shake 0.2s ease-in-out; }
-
-        #win-screen { display: none; text-align: center; }
-        .pixel-heart { font-size: 50px; animation: pulse 0.8s infinite; color: var(--primary); }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="main-ui">
-            <div style="font-size: 10px; text-align: left; opacity: 0.7;">BOSS: VALENTINE_BOT</div>
-            <div class="hp-container"><div id="hp-fill"></div></div>
-            
-            <div class="pixel-heart" style="margin-top: 20px;">❤️</div>
-            <h1 id="question">Will you be my Valentine?</h1>
-            
-            <div id="play-area">
-                <button id="yesBtn" onclick="celebrate()">YES</button>
-                <button id="noBtn" onclick="handleNo()">NO</button>
-            </div>
-        </div>
+    <canvas id="canvas-bg"></canvas>
 
-        <div id="win-screen">
-            <h1 style="color: var(--secondary);">QUEST COMPLETE!</h1>
-            <div style="font-size: 80px; margin: 20px 0;">🎁</div>
-            <p style="color: var(--primary); font-weight: bold;">NEW ALLY ADDED: [YOU]</p>
-            <p style="font-size: 10px; opacity: 0.6;">FOREVER MODE ACTIVATED</p>
+    <div class="interface" id="intro">
+        <div class="glass-card">
+            <h1>Happy Birthday.</h1>
+            <p>I built this for you. Your birthday is a constellation of moments that matter.</p>
+            <p style="font-size: 0.8rem; color: var(--gold);">Collect the 5 stars in the sky.</p>
+            <button class="btn" style="pointer-events: auto;" onclick="start()">Enter the Sky</button>
+        </div>
+    </div>
+
+    <div id="memory-field"></div>
+
+    <div id="final-letter">
+        <div class="letter-content">
+            <p id="letter-text"></p>
+            <div style="text-align: right; margin-top: 30px;">— [Your Name]</div>
+            <center><button class="btn" onclick="location.reload()">Replay</button></center>
         </div>
     </div>
 
     <script>
-        let hp = 100;
-        let scale = 1;
-        const noPhrases = ["MISS!", "TRY AGAIN", "BLOCK!", "REFUSED", "ERROR", "RETRYING..."];
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let collected = 0;
 
-        function handleNo() {
-            const noBtn = document.getElementById('noBtn');
-            const yesBtn = document.getElementById('yesBtn');
-            const hpFill = document.getElementById('hp-fill');
-            const container = document.getElementById('game-container');
-            const area = document.getElementById('play-area');
+        // 1. ADD YOUR MEMORIES HERE
+        const memories = [
+            "The time we laughed at [Inside Joke]",
+            "That first trip to [Place Name]",
+            "The way you look when you're [Happy/Focused]",
+            "Our favorite rainy day at [Location]",
+            "The way we used to [Shared Habit]"
+        ];
 
-            // 1. Reduce HP
-            hp -= 10;
-            if(hp < 0) hp = 5; // Keep a sliver of health
-            hpFill.style.width = hp + "%";
+        // 2. YOUR FINAL BIRTHDAY MESSAGE
+        const finalMessage = "I know things have been quiet lately, but I couldn't let today pass without reminding you how much light you bring into the world. You deserve a year as beautiful as the memories we share. Happy Birthday, [Her Name]. I'm still rooting for you.";
 
-            // 2. Shake Screen
-            container.classList.add('shake');
-            setTimeout(() => container.classList.remove('shake'), 200);
-
-            // 3. Move NO button to logical corners (Mobile friendly)
-            const padding = 20;
-            const x = Math.random() < 0.5 ? padding : area.clientWidth - noBtn.clientWidth - padding;
-            const y = Math.random() < 0.5 ? padding : area.clientHeight - noBtn.clientHeight - padding;
-            
-            noBtn.style.left = x + 'px';
-            noBtn.style.top = y + 'px';
-            noBtn.style.transform = 'none';
-            noBtn.innerText = noPhrases[Math.floor(Math.random() * noPhrases.length)];
-
-            // 4. YES button takes over the screen
-            scale += 0.3;
-            yesBtn.style.transform = `translate(-50%, -50%) scale(${scale})`;
-            
-            // 5. Change background color intensity
-            document.body.style.backgroundColor = `rgb(${10 + (100 - hp)}, 10, 10)`;
+        function start() {
+            document.getElementById('intro').style.display = 'none';
+            spawnMemories();
         }
 
-        function celebrate() {
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('win-screen').style.display = 'block';
-            document.body.style.background = '#ff4d6d';
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        function spawnMemories() {
+            const field = document.getElementById('memory-field');
+            memories.forEach((text, i) => {
+                const m = document.createElement('div');
+                m.className = 'memory-bubble';
+                m.innerText = "✨";
+                m.style.left = Math.random() * 70 + 15 + "vw";
+                m.style.top = Math.random() * 70 + 15 + "vh";
+                m.style.animationDelay = i * 0.5 + "s";
+                m.onclick = () => {
+                    m.innerText = text;
+                    m.style.background = "rgba(212, 175, 55, 0.2)";
+                    m.style.pointerEvents = "none";
+                    collected++;
+                    if(collected === memories.length) setTimeout(showLetter, 3000);
+                };
+                field.appendChild(m);
+            });
         }
+
+        function showLetter() {
+            const letter = document.getElementById('final-letter');
+            letter.style.display = 'flex';
+            setTimeout(() => {
+                letter.style.opacity = '1';
+                typeWriter();
+            }, 100);
+        }
+
+        function typeWriter() {
+            let i = 0;
+            const text = finalMessage;
+            function type() {
+                if (i < text.length) {
+                    document.getElementById('letter-text').innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, 50);
+                }
+            }
+            type();
+        }
+
+        // Star background logic
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            for(let i=0; i<150; i++) {
+                stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*1.5, speed: Math.random()*0.05});
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            stars.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+                ctx.fill();
+                s.y -= s.speed;
+                if(s.y < 0) s.y = canvas.height;
+            });
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
     </script>
 </body>
 </html>
