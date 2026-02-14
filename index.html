@@ -77,10 +77,20 @@
         .photo-wall { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .photo-card { height: 160px; border-radius: 12px; overflow: hidden; position: relative; background: #e5e5ea; }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* THIS FIXES THE PICTURE TITLES */
+        .photo-caption { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: rgba(0,0,0,0.6); color: white; 
+            font-size: 10px; padding: 5px; text-align: center; 
+        }
+
         .archive-lock { position: absolute; inset: 0; background: #f2f2f7; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
         .btn-unlock { background: #007aff; color: white; border: none; padding: 12px 24px; border-radius: 20px; font-size: 16px; font-weight: 600; margin-top: 20px; cursor: pointer; }
 
         .note-page { background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid #ffcc00; }
+        .note-title { font-weight: 700; margin-bottom: 5px; color: #1c1c1e; }
+        .note-text { font-size: 14px; line-height: 1.4; color: #3a3a3c; }
         
         .diary-input { width: 100%; border: none; border-radius: 15px; padding: 20px; font-family: inherit; font-size: 16px; background: white; margin-bottom: 20px; height: 150px; resize: none; outline: none; }
         .btn-send { width: 100%; background: #007aff; color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; }
@@ -204,7 +214,6 @@
         const CONFIG = {
             passcode: "1402",
             email: "azureso855@gmail.com",
-            // PLACE YOUR FORMSPREE LINK IN THE QUOTES BELOW
             formspreeUrl: "https://formspree.io/f/mkovrrpa", 
             photos: [
                 { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/5226989699501593622%281%29.jpg", caption: "The beginning." },
@@ -215,7 +224,6 @@
             music: { url: "https://raw.githubusercontent.com/tyomdaa/valentinebirthday/main/lenkker.mp3", title: "Our Song" },
             notes: [
                 { title: "On Your Resilience", text: "I've always admired how you handle the world. You have a strength that most people never see." },
-                { title: "The Best Sound", text: "Your laugh is still the best sound I've ever heard. Don't ever let the world quiet it down." },
                 { title: "Happy Birthday", text: "I'm still rooting for you to hit every goal you've set for yourself. I know you will." }
             ],
             finalMessage: "I built this to show you that even though chapters change, the respect I have for your story doesn't.",
@@ -226,13 +234,12 @@
         let currentPin = "";
         let viewedApps = { photos: false, notes: false, music: false };
 
-        // THE FUNCTION YOU REQUESTED
         async function sendRemoteMessage() {
             const text = document.getElementById('diary-text').value;
             const btn = document.getElementById('btn-send-remote');
             
             if(!text) return alert("Please type a message first!");
-            if(CONFIG.formspreeUrl.includes("PASTE_YOUR")) return alert("Dev Note: You forgot to add your Formspree link!");
+            if(CONFIG.formspreeUrl.includes("PASTE_YOUR")) return alert("Dev Note: Link missing in the code!");
 
             btn.innerText = "Sending...";
             btn.disabled = true;
